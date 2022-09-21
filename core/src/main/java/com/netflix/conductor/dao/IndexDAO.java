@@ -92,6 +92,23 @@ public interface IndexDAO {
     CompletableFuture<Void> asyncRemoveWorkflow(String workflowId);
 
     /**
+     * Remove the task index
+     *
+     * @param workflowId workflow containing task
+     * @param taskId task to be removed
+     */
+    void removeTask(String workflowId, String taskId);
+
+    /**
+     * Remove the workflow index asynchronously
+     *
+     * @param workflowId workflow containing task
+     * @param taskId task to be removed
+     * @return CompletableFuture of type void
+     */
+    CompletableFuture<Void> asyncRemoveTask(String workflowId, String taskId);
+
+    /**
      * Updates the index
      *
      * @param workflowInstanceId id of the workflow

@@ -770,6 +770,42 @@ public class ElasticSearchRestDAOV6 extends ElasticSearchBaseDAO implements Inde
     }
 
     @Override
+    public void removeTask(String workflowId, String taskId) {
+        long startTime = Instant.now().toEpochMilli();
+        String docType = StringUtils.isBlank(docTypeOverride) ? TASK_DOC_TYPE : docTypeOverride;
+
+        // TODO: Search for task and make sure the task belongs to the workflow
+
+        DeleteRequest request = new DeleteRequest(taskIndexName, docType, taskId);
+
+        try {
+            DeleteResponse response = elasticSearchClient.delete(request);
+
+            if (response.getResult() == DocWriteResponse.Result.NOT_FOUND) {
+                LOGGER.error("Index removal failed - task not found by id: {}", workflowId);
+            }
+            long endTime = Instant.now().toEpochMilli();
+            LOGGER.debug(
+                    "Time taken {} for removing task:{} for workflow: {}",
+                    endTime - startTime,
+                    taskId,
+                    workflowId);
+            Monitors.recordESIndexTime("remove_task", docType, endTime - startTime);
+            Monitors.recordWorkerQueueSize(
+                    "indexQueue", ((ThreadPoolExecutor) executorService).getQueue().size());
+        } catch (IOException e) {
+            LOGGER.error(
+                    "Failed to remove task {} of workflow: {} from index", taskId, workflowId, e);
+            Monitors.error(className, "remove");
+        }
+    }
+
+    @Override
+    public CompletableFuture<Void> asyncRemoveTask(String workflowId, String taskId) {
+        return CompletableFuture.runAsync(() -> removeTask(workflowId, taskId), executorService);
+    }
+
+    @Override
     public void updateWorkflow(String workflowInstanceId, String[] keys, Object[] values) {
         try {
             if (keys.length != values.length) {
