@@ -142,14 +142,13 @@ public interface IndexDAO {
      * Updates the index
      *
      * @param workflowId id of the workflow
-     * @param taskId id of the workflow
+     * @param taskId id of the task
      * @param keys keys to be updated
      * @param values values. Number of keys and values MUST match.
      * @return CompletableFuture of type void
      */
-    CompletableFuture<Void> asyncUpdateWorkflow(
+    CompletableFuture<Void> asyncUpdateTask(
             String workflowId, String taskId, String[] keys, Object[] values);
-
 
     /**
      * Retrieves a specific field from the index

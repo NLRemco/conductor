@@ -809,7 +809,7 @@ public class ElasticSearchDAOV6 extends ElasticSearchBaseDAO implements IndexDAO
     }
 
     @Override
-    public CompletableFuture<Void> asyncUpdateWorkflow(String workflowId, String taskId, String[] keys, Object[] values) {
+    public CompletableFuture<Void> asyncUpdateTask(String workflowId, String taskId, String[] keys, Object[] values) {
         return CompletableFuture.runAsync(
                 () -> updateTask(workflowId, taskId, keys, values), executorService);
     }

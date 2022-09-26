@@ -864,7 +864,7 @@ public class ElasticSearchRestDAOV6 extends ElasticSearchBaseDAO implements Inde
                             .collect(Collectors.toMap(i -> keys[i], i -> values[i]));
             request.doc(source);
 
-            LOGGER.debug("Updating task {} of workflow: {} with {}", taskId, workflowId, source);
+            LOGGER.debug("Updating task: {} of workflow: {} with {}", taskId, workflowId, source);
             elasticSearchClient.update(request, RequestOptions.DEFAULT);
             long endTime = Instant.now().toEpochMilli();
             LOGGER.debug(
@@ -875,13 +875,13 @@ public class ElasticSearchRestDAOV6 extends ElasticSearchBaseDAO implements Inde
             Monitors.recordWorkerQueueSize(
                     "indexQueue", ((ThreadPoolExecutor) executorService).getQueue().size());
         } catch (Exception e) {
-            LOGGER.error("Failed to update task {} of workflow: {}", taskId, workflowId, e);
+            LOGGER.error("Failed to update task: {} of workflow: {}", taskId, workflowId, e);
             Monitors.error(className, "update");
         }
     }
 
     @Override
-    public CompletableFuture<Void> asyncUpdateWorkflow(String workflowId, String taskId, String[] keys, Object[] values) {
+    public CompletableFuture<Void> asyncUpdateTask(String workflowId, String taskId, String[] keys, Object[] values) {
         return CompletableFuture.runAsync(
                 () -> updateTask(workflowId, taskId, keys, values), executorService);
     }

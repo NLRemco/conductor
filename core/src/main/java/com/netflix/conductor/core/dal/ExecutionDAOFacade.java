@@ -340,7 +340,7 @@ public class ExecutionDAOFacade {
      */
     public void removeWorkflow(String workflowId, boolean archiveWorkflow, boolean removeTasks, boolean archiveTasks) {
         if(!removeTasks) {
-            LOGGER.info("Not removing tasks for workflow: {}", workflowId);
+            LOGGER.info("Not removing tasks of workflow: {}", workflowId);
         }
 
         WorkflowModel workflow = getWorkflowModelFromDataStore(workflowId, true);
@@ -358,7 +358,7 @@ public class ExecutionDAOFacade {
                     removeTaskIndex(workflow, task, archiveTasks);
                 } catch (JsonProcessingException e) {
                     // TODO: Ensure this String isn't constructed each method call
-                    throw new TransientException(String.format("Task %s for workflow %s can not be serialized to json", task.getTaskId(), workflow.getWorkflowId()), e);
+                    throw new TransientException(String.format("Task %s of workflow %s can not be serialized to json", task.getTaskId(), workflow.getWorkflowId()), e);
                 }
             }
         }
@@ -539,7 +539,7 @@ public class ExecutionDAOFacade {
         if (archiveTask) {
             if (task.getStatus().isTerminal()) {
                 // Only allow archival if task is in terminal state
-                // DO NOT archive async, since if archival errors out, workflow data will be lost
+                // DO NOT archive async, since if archival errors out, task data will be lost
                 indexDAO.updateTask(
                         workflow.getWorkflowId(), task.getTaskId(),
                         new String[] {RAW_JSON_FIELD, ARCHIVED_FIELD},
