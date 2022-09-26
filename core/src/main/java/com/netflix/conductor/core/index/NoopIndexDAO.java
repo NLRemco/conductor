@@ -70,6 +70,15 @@ public class NoopIndexDAO implements IndexDAO {
     }
 
     @Override
+    public void updateWorkflow(String workflowInstanceId, String[] keys, Object[] values) {}
+
+    @Override
+    public CompletableFuture<Void> asyncUpdateWorkflow(
+            String workflowInstanceId, String[] keys, Object[] values) {
+        return CompletableFuture.completedFuture(null);
+    }
+
+    @Override
     public void removeTask(String workflowId, String taskId) {}
 
     @Override
@@ -78,11 +87,10 @@ public class NoopIndexDAO implements IndexDAO {
     }
 
     @Override
-    public void updateWorkflow(String workflowInstanceId, String[] keys, Object[] values) {}
+    public void updateTask(String workflowId, String taskId, String[] keys, Object[] values) {}
 
     @Override
-    public CompletableFuture<Void> asyncUpdateWorkflow(
-            String workflowInstanceId, String[] keys, Object[] values) {
+    public CompletableFuture<Void> asyncUpdateWorkflow(String workflowId, String taskId, String[] keys, Object[] values) {
         return CompletableFuture.completedFuture(null);
     }
 

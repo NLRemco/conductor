@@ -699,53 +699,6 @@ public class ElasticSearchDAOV6 extends ElasticSearchBaseDAO implements IndexDAO
     }
 
     @Override
-    public void removeTask(String workflowId, String taskId) {
-        try {
-            long startTime = Instant.now().toEpochMilli();
-            String docType = StringUtils.isBlank(docTypeOverride) ? TASK_DOC_TYPE : docTypeOverride;
-
-            // TODO: Search for task and make sure the task belongs to the workflow
-            SearchResult<TaskSummary> taskSummary = null;
-
-            if (taskSummary.getTotalHits() == 0
-                    || !taskSummary.getResults().get(0).getWorkflowId().equals(workflowId)) {
-                LOGGER.error(
-                        "Index removal failed - task with id {} is not correlated to {}",
-                        taskId,
-                        workflowId);
-            }
-
-            DeleteRequest request = new DeleteRequest(taskIndexName, docType, taskId);
-            DeleteResponse response = elasticSearchClient.delete(request).actionGet();
-            long endTime = Instant.now().toEpochMilli();
-
-            if (response.getResult() == DocWriteResponse.Result.DELETED) {
-                LOGGER.error(
-                        "Index removal failed - task not found by id: {} for workflow {}",
-                        taskId,
-                        workflowId);
-            }
-            LOGGER.debug(
-                    "Time taken {} for removing task:{} for workflow: {}",
-                    endTime - startTime,
-                    taskId,
-                    workflowId);
-            Monitors.recordESIndexTime("remove_task", docType, endTime - startTime);
-            Monitors.recordWorkerQueueSize(
-                    "indexQueue", ((ThreadPoolExecutor) executorService).getQueue().size());
-        } catch (Exception e) {
-            LOGGER.error(
-                    "Failed to remove task: {} if workflow: {} from index", taskId, workflowId, e);
-            Monitors.error(CLASS_NAME, "remove");
-        }
-    }
-
-    @Override
-    public CompletableFuture<Void> asyncRemoveTask(String workflowId, String taskId) {
-        return CompletableFuture.runAsync(() -> removeTask(workflowId, taskId), executorService);
-    }
-
-    @Override
     public void updateWorkflow(String workflowInstanceId, String[] keys, Object[] values) {
         if (keys.length != values.length) {
             throw new IllegalArgumentException("Number of keys and values do not match");
@@ -777,6 +730,88 @@ public class ElasticSearchDAOV6 extends ElasticSearchBaseDAO implements IndexDAO
             String workflowInstanceId, String[] keys, Object[] values) {
         return CompletableFuture.runAsync(
                 () -> updateWorkflow(workflowInstanceId, keys, values), executorService);
+    }
+
+    @Override
+    public void removeTask(String workflowId, String taskId) {
+        try {
+            long startTime = Instant.now().toEpochMilli();
+            String docType = StringUtils.isBlank(docTypeOverride) ? TASK_DOC_TYPE : docTypeOverride;
+
+            // TODO: Search for task and make sure the task belongs to the workflow
+            SearchResult<TaskSummary> taskSummary = null;
+
+            if (taskSummary.getTotalHits() == 0
+                    || !taskSummary.getResults().get(0).getWorkflowId().equals(workflowId)) {
+                LOGGER.error(
+                        "Index removal failed - task with id {} is not correlated to {}",
+                        taskId,
+                        workflowId);
+            }
+
+            DeleteRequest request = new DeleteRequest(taskIndexName, docType, taskId);
+            DeleteResponse response = elasticSearchClient.delete(request).actionGet();
+            long endTime = Instant.now().toEpochMilli();
+
+            if (response.getResult() == DocWriteResponse.Result.DELETED) {
+                LOGGER.error(
+                        "Index removal failed - task not found by id: {} of workflow: {}",
+                        taskId,
+                        workflowId);
+            }
+            LOGGER.debug(
+                    "Time taken {} for removing task:{} of workflow: {}",
+                    endTime - startTime,
+                    taskId,
+                    workflowId);
+            Monitors.recordESIndexTime("remove_task", docType, endTime - startTime);
+            Monitors.recordWorkerQueueSize(
+                    "indexQueue", ((ThreadPoolExecutor) executorService).getQueue().size());
+        } catch (Exception e) {
+            LOGGER.error(
+                    "Failed to remove task: {} of workflow: {} from index", taskId, workflowId, e);
+            Monitors.error(CLASS_NAME, "remove");
+        }
+    }
+
+    @Override
+    public CompletableFuture<Void> asyncRemoveTask(String workflowId, String taskId) {
+        return CompletableFuture.runAsync(() -> removeTask(workflowId, taskId), executorService);
+    }
+
+    @Override
+    public void updateTask(String workflowId, String taskId, String[] keys, Object[] values) {
+        if (keys.length != values.length) {
+            throw new IllegalArgumentException("Number of keys and values do not match");
+        }
+
+        long startTime = Instant.now().toEpochMilli();
+        String docType = StringUtils.isBlank(docTypeOverride) ? TASK_DOC_TYPE : docTypeOverride;
+
+        UpdateRequest request =
+                new UpdateRequest(taskIndexName, docType, taskId);
+        Map<String, Object> source =
+                IntStream.range(0, keys.length)
+                        .boxed()
+                        .collect(Collectors.toMap(i -> keys[i], i -> values[i]));
+        request.doc(source);
+        LOGGER.debug(
+                "Updating task: {} of workflow: {} in elasticsearch index: {}",
+                taskId, workflowId,
+                taskIndexName);
+        elasticSearchClient.update(request).actionGet();
+        long endTime = Instant.now().toEpochMilli();
+        LOGGER.debug(
+                "Time taken {} for updating task: {} of workflow: {}", endTime - startTime, taskId, workflowId);
+        Monitors.recordESIndexTime("update_task", docType, endTime - startTime);
+        Monitors.recordWorkerQueueSize(
+                "indexQueue", ((ThreadPoolExecutor) executorService).getQueue().size());
+    }
+
+    @Override
+    public CompletableFuture<Void> asyncUpdateWorkflow(String workflowId, String taskId, String[] keys, Object[] values) {
+        return CompletableFuture.runAsync(
+                () -> updateTask(workflowId, taskId, keys, values), executorService);
     }
 
     @Override

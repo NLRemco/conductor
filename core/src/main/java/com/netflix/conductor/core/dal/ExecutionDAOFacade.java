@@ -334,9 +334,17 @@ public class ExecutionDAOFacade {
      * @param workflowId the id of the workflow to be removed
      * @param archiveWorkflow if true, the workflow will be archived in the {@link IndexDAO} after
      *     removal from {@link ExecutionDAO}
+     * @param removeTasks if true, the workflow tasks of the workflow will be removed
+     * @param archiveTasks if true, the workflow tasks will be archived in the {@link IndexDAO} after
+     *     removal from {@link ExecutionDAO}
      */
-    public void removeWorkflow(String workflowId, boolean archiveWorkflow) {
+    public void removeWorkflow(String workflowId, boolean archiveWorkflow, boolean removeTasks, boolean archiveTasks) {
+        if(!removeTasks) {
+            LOGGER.info("Not removing tasks for workflow: {}", workflowId);
+        }
+
         WorkflowModel workflow = getWorkflowModelFromDataStore(workflowId, true);
+        List<Task> tasks = getTasksForWorkflow(workflowId);
 
         try {
             removeWorkflowIndex(workflow, archiveWorkflow);
@@ -344,7 +352,23 @@ public class ExecutionDAOFacade {
             throw new TransientException("Workflow can not be serialized to json", e);
         }
 
+        if(removeTasks) {
+            for (Task task : tasks) {
+                try {
+                    removeTaskIndex(workflow, task, archiveTasks);
+                } catch (JsonProcessingException e) {
+                    // TODO: Ensure this String isn't constructed each method call
+                    throw new TransientException(String.format("Task %s for workflow %s can not be serialized to json", task.getTaskId(), workflow.getWorkflowId()), e);
+                }
+            }
+        }
+
         executionDAO.removeWorkflow(workflowId);
+        if(removeTasks) {
+            for (Task task : tasks) {
+                executionDAO.removeTask(task.getTaskId());
+            }
+        }
 
         try {
             queueDAO.remove(DECIDER_QUEUE, workflowId);
@@ -402,6 +426,7 @@ public class ExecutionDAOFacade {
             if (properties.isAsyncIndexingEnabled()) {
                 indexDAO.asyncRemoveWorkflow(workflowId);
             } else {
+                // TODO: Implement deleting all tasks
                 indexDAO.removeWorkflow(workflowId);
             }
         } catch (Exception e) {
@@ -507,6 +532,29 @@ public class ExecutionDAOFacade {
 
     public void removeTask(String taskId) {
         executionDAO.removeTask(taskId);
+    }
+
+    private void removeTaskIndex(WorkflowModel workflow, Task task, boolean archiveTask)
+            throws JsonProcessingException {
+        if (archiveTask) {
+            if (task.getStatus().isTerminal()) {
+                // Only allow archival if task is in terminal state
+                // DO NOT archive async, since if archival errors out, workflow data will be lost
+                indexDAO.updateTask(
+                        workflow.getWorkflowId(), task.getTaskId(),
+                        new String[] {RAW_JSON_FIELD, ARCHIVED_FIELD},
+                        new Object[] {objectMapper.writeValueAsString(task), true});
+            } else {
+                // TODO: Make sure this isn't constructed every time
+                throw new IllegalArgumentException(
+                        String.format(
+                                "Cannot archive task: %s with status: %s",
+                                task.getTaskType(), task.getStatus()));
+            }
+        } else {
+            // Not archiving, also remove task from index
+            indexDAO.asyncRemoveTask(workflow.getWorkflowId(), task.getTaskId());
+        }
     }
 
     public void extendLease(TaskModel taskModel) {

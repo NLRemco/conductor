@@ -92,23 +92,6 @@ public interface IndexDAO {
     CompletableFuture<Void> asyncRemoveWorkflow(String workflowId);
 
     /**
-     * Remove the task index
-     *
-     * @param workflowId workflow containing task
-     * @param taskId task to be removed
-     */
-    void removeTask(String workflowId, String taskId);
-
-    /**
-     * Remove the workflow index asynchronously
-     *
-     * @param workflowId workflow containing task
-     * @param taskId task to be removed
-     * @return CompletableFuture of type void
-     */
-    CompletableFuture<Void> asyncRemoveTask(String workflowId, String taskId);
-
-    /**
      * Updates the index
      *
      * @param workflowInstanceId id of the workflow
@@ -127,6 +110,46 @@ public interface IndexDAO {
      */
     CompletableFuture<Void> asyncUpdateWorkflow(
             String workflowInstanceId, String[] keys, Object[] values);
+
+    /**
+     * Remove the task index
+     *
+     * @param workflowId workflow containing task
+     * @param taskId task to be removed
+     */
+    void removeTask(String workflowId, String taskId);
+
+    /**
+     * Remove the task index asynchronously
+     *
+     * @param workflowId workflow containing task
+     * @param taskId task to be removed
+     * @return CompletableFuture of type void
+     */
+    CompletableFuture<Void> asyncRemoveTask(String workflowId, String taskId);
+
+    /**
+     * Updates the index
+     *
+     * @param workflowId id of the workflow
+     * @param taskId id of the task
+     * @param keys keys to be updated
+     * @param values values. Number of keys and values MUST match.
+     */
+    void updateTask(String workflowId, String taskId, String[] keys, Object[] values);
+
+    /**
+     * Updates the index
+     *
+     * @param workflowId id of the workflow
+     * @param taskId id of the workflow
+     * @param keys keys to be updated
+     * @param values values. Number of keys and values MUST match.
+     * @return CompletableFuture of type void
+     */
+    CompletableFuture<Void> asyncUpdateWorkflow(
+            String workflowId, String taskId, String[] keys, Object[] values);
+
 
     /**
      * Retrieves a specific field from the index
