@@ -244,15 +244,33 @@ public class WorkflowServiceTest {
     }
 
     @Test
-    public void testDeleteWorkflow() {
-        workflowService.deleteWorkflow("w123", true);
-        verify(executionService, times(1)).removeWorkflow(anyString(), anyBoolean());
+    public void testDeleteWorkflowWithoutTask() {
+        workflowService.deleteWorkflow("w123", true, false, false);
+        verify(executionService, times(1)).removeWorkflow(anyString(), anyBoolean(), anyBoolean(), anyBoolean());
+    }
+
+    @Test
+    public void testDeleteWorkflowWithTask() {
+        workflowService.deleteWorkflow("w123", true, true, true);
+        verify(executionService, times(1)).removeWorkflow(anyString(), anyBoolean(), anyBoolean(), anyBoolean());
     }
 
     @Test(expected = ConstraintViolationException.class)
-    public void testInvalidDeleteWorkflow() {
+    public void testInvalidDeleteWorkflowWithoutTask() {
         try {
-            workflowService.deleteWorkflow(null, true);
+            workflowService.deleteWorkflow(null, true, false, false);
+        } catch (ConstraintViolationException ex) {
+            assertEquals(1, ex.getConstraintViolations().size());
+            Set<String> messages = getConstraintViolationMessages(ex.getConstraintViolations());
+            assertTrue(messages.contains("WorkflowId cannot be null or empty."));
+            throw ex;
+        }
+    }
+
+    @Test(expected = ConstraintViolationException.class)
+    public void testInvalidDeleteWorkflowWithTask() {
+        try {
+            workflowService.deleteWorkflow(null, true, true, true);
         } catch (ConstraintViolationException ex) {
             assertEquals(1, ex.getConstraintViolations().size());
             Set<String> messages = getConstraintViolationMessages(ex.getConstraintViolations());
