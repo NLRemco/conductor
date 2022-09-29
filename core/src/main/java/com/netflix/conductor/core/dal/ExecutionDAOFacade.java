@@ -331,7 +331,7 @@ public class ExecutionDAOFacade {
     /**
      * Removes the workflow from the data store.
      *
-     * @param workflowId the workflow to be removed
+     * @param workflowId the id of the workflow to be removed
      * @param archiveWorkflow if true, the workflow will be archived in the {@link IndexDAO} after
      *     removal from {@link ExecutionDAO}
      * @param removeTasks if true, the workflow associated tasks of the workflow will be removed
