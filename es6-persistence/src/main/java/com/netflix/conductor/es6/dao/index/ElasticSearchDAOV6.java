@@ -738,15 +738,15 @@ public class ElasticSearchDAOV6 extends ElasticSearchBaseDAO implements IndexDAO
             long startTime = Instant.now().toEpochMilli();
             String docType = StringUtils.isBlank(docTypeOverride) ? TASK_DOC_TYPE : docTypeOverride;
 
-            // TODO: Search for task and make sure the task belongs to the workflow
-            SearchResult<TaskSummary> taskSummary = null;
+            SearchResult<String> taskSearchResult = searchTasks(
+                    QueryBuilders.boolQuery()
+                            .must(QueryBuilders.termQuery("workflowId", workflowId))
+                            .must(QueryBuilders.termQuery("taskId", taskId))
+                            .toString(),
+                    "*", 0, 1, null);
 
-            if (taskSummary.getTotalHits() == 0
-                    || !taskSummary.getResults().get(0).getWorkflowId().equals(workflowId)) {
-                LOGGER.error(
-                        "Index removal failed - task with id {} is not correlated to {}",
-                        taskId,
-                        workflowId);
+            if(taskSearchResult.getTotalHits() == 0) {
+                LOGGER.error("Task: {} does not belong to workflow: {}", taskId, workflowId);
             }
 
             DeleteRequest request = new DeleteRequest(taskIndexName, docType, taskId);

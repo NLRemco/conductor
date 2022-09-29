@@ -815,7 +815,16 @@ public class ElasticSearchRestDAOV6 extends ElasticSearchBaseDAO implements Inde
         long startTime = Instant.now().toEpochMilli();
         String docType = StringUtils.isBlank(docTypeOverride) ? TASK_DOC_TYPE : docTypeOverride;
 
-        // TODO: Search for task and make sure the task belongs to the workflow
+        SearchResult<String> taskSearchResult = searchTasks(
+                QueryBuilders.boolQuery()
+                        .must(QueryBuilders.termQuery("workflowId", workflowId))
+                        .must(QueryBuilders.termQuery("taskId", taskId))
+                        .toString(),
+                "*", 0, 1, null);
+
+        if(taskSearchResult.getTotalHits() == 0) {
+            LOGGER.error("Task: {} does not belong to workflow: {}", taskId, workflowId);
+        }
 
         DeleteRequest request = new DeleteRequest(taskIndexName, docType, taskId);
 
