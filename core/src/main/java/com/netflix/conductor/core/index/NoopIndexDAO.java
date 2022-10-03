@@ -90,7 +90,8 @@ public class NoopIndexDAO implements IndexDAO {
     public void updateTask(String workflowId, String taskId, String[] keys, Object[] values) {}
 
     @Override
-    public CompletableFuture<Void> asyncUpdateTask(String workflowId, String taskId, String[] keys, Object[] values) {
+    public CompletableFuture<Void> asyncUpdateTask(
+            String workflowId, String taskId, String[] keys, Object[] values) {
         return CompletableFuture.completedFuture(null);
     }
 
