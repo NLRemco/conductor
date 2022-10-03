@@ -815,14 +815,18 @@ public class ElasticSearchRestDAOV6 extends ElasticSearchBaseDAO implements Inde
         long startTime = Instant.now().toEpochMilli();
         String docType = StringUtils.isBlank(docTypeOverride) ? TASK_DOC_TYPE : docTypeOverride;
 
-        SearchResult<String> taskSearchResult = searchTasks(
-                QueryBuilders.boolQuery()
-                        .must(QueryBuilders.termQuery("workflowId", workflowId))
-                        .must(QueryBuilders.termQuery("taskId", taskId))
-                        .toString(),
-                "*", 0, 1, null);
+        SearchResult<String> taskSearchResult =
+                searchTasks(
+                        QueryBuilders.boolQuery()
+                                .must(QueryBuilders.termQuery("workflowId", workflowId))
+                                .must(QueryBuilders.termQuery("taskId", taskId))
+                                .toString(),
+                        "*",
+                        0,
+                        1,
+                        null);
 
-        if(taskSearchResult.getTotalHits() == 0) {
+        if (taskSearchResult.getTotalHits() == 0) {
             LOGGER.error("Task: {} does not belong to workflow: {}", taskId, workflowId);
         }
 
@@ -863,10 +867,8 @@ public class ElasticSearchRestDAOV6 extends ElasticSearchBaseDAO implements Inde
             }
 
             long startTime = Instant.now().toEpochMilli();
-            String docType =
-                    StringUtils.isBlank(docTypeOverride) ? TASK_DOC_TYPE : docTypeOverride;
-            UpdateRequest request =
-                    new UpdateRequest(taskIndexName, docType, taskId);
+            String docType = StringUtils.isBlank(docTypeOverride) ? TASK_DOC_TYPE : docTypeOverride;
+            UpdateRequest request = new UpdateRequest(taskIndexName, docType, taskId);
             Map<String, Object> source =
                     IntStream.range(0, keys.length)
                             .boxed()
@@ -879,7 +881,8 @@ public class ElasticSearchRestDAOV6 extends ElasticSearchBaseDAO implements Inde
             LOGGER.debug(
                     "Time taken {} for updating task: {} of workflow: {}",
                     endTime - startTime,
-                    taskId, workflowId);
+                    taskId,
+                    workflowId);
             Monitors.recordESIndexTime("update_task", docType, endTime - startTime);
             Monitors.recordWorkerQueueSize(
                     "indexQueue", ((ThreadPoolExecutor) executorService).getQueue().size());
@@ -890,7 +893,8 @@ public class ElasticSearchRestDAOV6 extends ElasticSearchBaseDAO implements Inde
     }
 
     @Override
-    public CompletableFuture<Void> asyncUpdateTask(String workflowId, String taskId, String[] keys, Object[] values) {
+    public CompletableFuture<Void> asyncUpdateTask(
+            String workflowId, String taskId, String[] keys, Object[] values) {
         return CompletableFuture.runAsync(
                 () -> updateTask(workflowId, taskId, keys, values), executorService);
     }

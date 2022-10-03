@@ -135,7 +135,8 @@ public class WorkflowServiceImpl extends WorkflowServiceGrpc.WorkflowServiceImpl
             StreamObserver<WorkflowServicePb.RemoveWorkflowResponse> response) {
         try {
             // TODO: Follow up with modifying the request grpc
-            workflowService.deleteWorkflow(req.getWorkflodId(), req.getArchiveWorkflow(), false, false);
+            workflowService.deleteWorkflow(
+                    req.getWorkflodId(), req.getArchiveWorkflow(), false, false);
             response.onNext(WorkflowServicePb.RemoveWorkflowResponse.getDefaultInstance());
             response.onCompleted();
         } catch (Exception e) {
