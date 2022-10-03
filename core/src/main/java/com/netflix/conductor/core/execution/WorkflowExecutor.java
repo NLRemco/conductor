@@ -389,7 +389,7 @@ public class WorkflowExecutor {
 
             // It's possible the remove workflow call hits an exception as well, in that case we
             // want to log both errors to help diagnosis.
-            // For now the tasks are not removed and/or archived.
+            // For now the tasks are not removed or archived.
             try {
                 executionDAOFacade.removeWorkflow(workflowId, false, false, false);
             } catch (Exception rwe) {
