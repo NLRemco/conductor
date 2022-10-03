@@ -139,11 +139,13 @@ public class ExecutionDAOFacadeTest {
     @Test
     public void testRemoveWorkflowWithoutTasks() {
         WorkflowModel workflow = new WorkflowModel();
-        workflow.setWorkflowId("exampleWorkflow");
-
-        workflow.setTasks(List.of(new TaskModel()));
-
+        workflow.setWorkflowId("workflowId");
         workflow.setStatus(WorkflowModel.Status.COMPLETED);
+
+        TaskModel task = new TaskModel();
+        task.setTaskId("taskId");
+        workflow.setTasks(Collections.singletonList(task));
+
         when(executionDAO.getWorkflow(anyString(), anyBoolean())).thenReturn(workflow);
         executionDAOFacade.removeWorkflow("workflowId", false, false, false);
         verify(indexDAO, never()).updateWorkflow(anyString(), any(), any());
@@ -155,9 +157,13 @@ public class ExecutionDAOFacadeTest {
     @Test
     public void testRemoveWorkflowWithTasks() {
         WorkflowModel workflow = new WorkflowModel();
-        workflow.setTasks(List.of(new TaskModel()));
-
+        workflow.setWorkflowId("workflowId");
         workflow.setStatus(WorkflowModel.Status.COMPLETED);
+
+        TaskModel task = new TaskModel();
+        task.setTaskId("taskId");
+        workflow.setTasks(Collections.singletonList(task));
+
         when(executionDAO.getWorkflow(anyString(), anyBoolean())).thenReturn(workflow);
         executionDAOFacade.removeWorkflow("workflowId", false, true, false);
         verify(indexDAO, never()).updateWorkflow(anyString(), any(), any());
