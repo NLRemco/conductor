@@ -44,6 +44,7 @@ import com.netflix.conductor.core.exception.NotFoundException;
 import com.netflix.conductor.core.exception.TerminateWorkflowException;
 import com.netflix.conductor.core.exception.TransientException;
 import com.netflix.conductor.core.utils.ExternalPayloadStorageUtils;
+import com.netflix.conductor.core.utils.QueueUtils;
 import com.netflix.conductor.dao.*;
 import com.netflix.conductor.metrics.Monitors;
 import com.netflix.conductor.model.TaskModel;
@@ -334,17 +335,26 @@ public class ExecutionDAOFacade {
      * @param workflowId the id of the workflow to be removed
      * @param archiveWorkflow if true, the workflow will be archived in the {@link IndexDAO} after
      *     removal from {@link ExecutionDAO}
-     * @param removeTasks if true, the workflow associated tasks of the workflow will be removed
-     * @param archiveTasks if true, the workflow associated tasks will be archived in the {@link IndexDAO} after
-     *     removal from {@link ExecutionDAO}
+     * @param removeTasks if true, the tasks associated with the workflow will be removed
+     * @param archiveTasks if true, the tasks associated with the workflow will be archived in the
+     *     {@link IndexDAO} after removal from {@link ExecutionDAO}
      */
-    public void removeWorkflow(String workflowId, boolean archiveWorkflow, boolean removeTasks, boolean archiveTasks) {
-        if(!removeTasks) {
+    public void removeWorkflow(
+            String workflowId, boolean archiveWorkflow, boolean removeTasks, boolean archiveTasks) {
+        if (!removeTasks) {
             LOGGER.info("Not removing tasks of workflow: {}", workflowId);
         }
 
         WorkflowModel workflow = getWorkflowModelFromDataStore(workflowId, true);
         List<TaskModel> tasks = workflow.getTasks();
+
+        executionDAO.removeWorkflow(workflowId);
+        if (removeTasks) {
+            tasks.forEach(
+                    task -> {
+                        executionDAO.removeTask(task.getTaskId());
+                    });
+        }
 
         try {
             removeWorkflowIndex(workflow, archiveWorkflow);
@@ -352,27 +362,41 @@ public class ExecutionDAOFacade {
             throw new TransientException("Workflow can not be serialized to json", e);
         }
 
-        if(removeTasks) {
-            for (TaskModel task : tasks) {
-                try {
-                    removeTaskIndex(workflow, task, archiveTasks);
-                } catch (JsonProcessingException e) {
-                    throw new TransientException(String.format("Task %s of workflow %s can not be serialized to json", task.getTaskId(), workflow.getWorkflowId()), e);
-                }
-            }
-        }
-
-        executionDAO.removeWorkflow(workflowId);
-        if(removeTasks) {
-            for (TaskModel task : tasks) {
-                executionDAO.removeTask(task.getTaskId());
-            }
+        if (removeTasks) {
+            tasks.forEach(
+                    task -> {
+                        try {
+                            removeTaskIndex(workflow, task, archiveTasks);
+                        } catch (JsonProcessingException e) {
+                            throw new TransientException(
+                                    String.format(
+                                            "Task %s of workflow %s can not be serialized to json",
+                                            task.getTaskId(), workflow.getWorkflowId()),
+                                    e);
+                        }
+                    });
         }
 
         try {
             queueDAO.remove(DECIDER_QUEUE, workflowId);
         } catch (Exception e) {
             LOGGER.info("Error removing workflow: {} from decider queue", workflowId, e);
+        }
+
+        if (removeTasks) {
+            tasks.forEach(
+                    task -> {
+                        try {
+                            queueDAO.remove(QueueUtils.getQueueName(task), task.getTaskId());
+                        } catch (Exception e) {
+                            LOGGER.info(
+                                    "Error removing task: {} of workflow: {} from {} queue",
+                                    workflowId,
+                                    task.getTaskId(),
+                                    QueueUtils.getQueueName(task),
+                                    e);
+                        }
+                    });
         }
     }
 
@@ -539,17 +563,18 @@ public class ExecutionDAOFacade {
                 // Only allow archival if task is in terminal state
                 // DO NOT archive async, since if archival errors out, task data will be lost
                 indexDAO.updateTask(
-                        workflow.getWorkflowId(), task.getTaskId(),
+                        workflow.getWorkflowId(),
+                        task.getTaskId(),
                         new String[] {RAW_JSON_FIELD, ARCHIVED_FIELD},
                         new Object[] {objectMapper.writeValueAsString(task), true});
             } else {
                 throw new IllegalArgumentException(
                         String.format(
-                                "Cannot archive task: %s with status: %s",
-                                task.getTaskType(), task.getStatus()));
+                                "Cannot archive task: %s of workflow: %s with status: %s",
+                                task.getTaskId(), workflow.getWorkflowId(), task.getStatus()));
             }
         } else {
-            // Not archiving, also remove task from index
+            // Not archiving, remove task from index
             indexDAO.asyncRemoveTask(workflow.getWorkflowId(), task.getTaskId());
         }
     }
