@@ -41,13 +41,7 @@ import com.netflix.conductor.core.execution.WorkflowExecutor;
 import static com.netflix.conductor.TestUtils.getConstraintViolationMessages;
 
 import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyMap;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -247,14 +241,14 @@ public class WorkflowServiceTest {
     public void testDeleteWorkflowWithoutTask() {
         workflowService.deleteWorkflow("w123", true, false, false);
         verify(executionService, times(1))
-                .removeWorkflow(anyString(), anyBoolean(), anyBoolean(), anyBoolean());
+                .removeWorkflow(anyString(), anyBoolean(), eq(false), anyBoolean());
     }
 
     @Test
     public void testDeleteWorkflowWithTask() {
         workflowService.deleteWorkflow("w123", true, true, true);
         verify(executionService, times(1))
-                .removeWorkflow(anyString(), anyBoolean(), anyBoolean(), anyBoolean());
+                .removeWorkflow(anyString(), anyBoolean(), eq(true), anyBoolean());
     }
 
     @Test(expected = ConstraintViolationException.class)
