@@ -246,13 +246,15 @@ public class WorkflowServiceTest {
     @Test
     public void testDeleteWorkflowWithoutTask() {
         workflowService.deleteWorkflow("w123", true, false, false);
-        verify(executionService, times(1)).removeWorkflow(anyString(), anyBoolean(), anyBoolean(), anyBoolean());
+        verify(executionService, times(1))
+                .removeWorkflow(anyString(), anyBoolean(), anyBoolean(), anyBoolean());
     }
 
     @Test
     public void testDeleteWorkflowWithTask() {
         workflowService.deleteWorkflow("w123", true, true, true);
-        verify(executionService, times(1)).removeWorkflow(anyString(), anyBoolean(), anyBoolean(), anyBoolean());
+        verify(executionService, times(1))
+                .removeWorkflow(anyString(), anyBoolean(), anyBoolean(), anyBoolean());
     }
 
     @Test(expected = ConstraintViolationException.class)
