@@ -254,11 +254,9 @@ public class WorkflowServiceImpl implements WorkflowService {
      * @param workflowId WorkflowID of the workflow you want to remove from system.
      * @param archiveWorkflow Archives the workflow instead of removing it.
      * @param removeTasks Whether to remove the associated tasks from system.
-     * @param archiveTasks Archives the associated tasks instead of removing them.
      */
-    public void deleteWorkflow(
-            String workflowId, boolean archiveWorkflow, boolean removeTasks, boolean archiveTasks) {
-        executionService.removeWorkflow(workflowId, archiveWorkflow, removeTasks, archiveTasks);
+    public void deleteWorkflow(String workflowId, boolean archiveWorkflow, boolean removeTasks) {
+        executionService.removeWorkflow(workflowId, archiveWorkflow, removeTasks);
     }
 
     /**

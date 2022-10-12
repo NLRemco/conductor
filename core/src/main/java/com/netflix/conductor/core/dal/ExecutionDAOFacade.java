@@ -336,11 +336,8 @@ public class ExecutionDAOFacade {
      * @param archiveWorkflow if true, the workflow will be archived in the {@link IndexDAO} after
      *     removal from {@link ExecutionDAO}
      * @param removeTasks if true, the tasks associated with the workflow will be removed
-     * @param archiveTasks if true, the tasks associated with the workflow will be archived in the
-     *     {@link IndexDAO} after removal from {@link ExecutionDAO}
      */
-    public void removeWorkflow(
-            String workflowId, boolean archiveWorkflow, boolean removeTasks, boolean archiveTasks) {
+    public void removeWorkflow(String workflowId, boolean archiveWorkflow, boolean removeTasks) {
         if (!removeTasks) {
             LOGGER.info("Not removing tasks of workflow: {}", workflowId);
         }
@@ -366,7 +363,7 @@ public class ExecutionDAOFacade {
             tasks.forEach(
                     task -> {
                         try {
-                            removeTaskIndex(workflow, task, archiveTasks);
+                            removeTaskIndex(workflow, task, archiveWorkflow);
                         } catch (JsonProcessingException e) {
                             throw new TransientException(
                                     String.format(

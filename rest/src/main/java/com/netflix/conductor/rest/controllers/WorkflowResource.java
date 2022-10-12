@@ -113,10 +113,8 @@ public class WorkflowResource {
             @RequestParam(value = "archiveWorkflow", defaultValue = "true", required = false)
                     boolean archiveWorkflow,
             @RequestParam(value = "removeTask", defaultValue = "false", required = false)
-                    boolean removeTasks,
-            @RequestParam(value = "archiveTasks", defaultValue = "true", required = false)
-                    boolean archiveTasks) {
-        workflowService.deleteWorkflow(workflowId, archiveWorkflow, removeTasks, archiveTasks);
+                    boolean removeTasks) {
+        workflowService.deleteWorkflow(workflowId, archiveWorkflow, removeTasks);
     }
 
     @GetMapping("/running/{name}")

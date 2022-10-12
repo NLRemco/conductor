@@ -147,7 +147,7 @@ public class ExecutionDAOFacadeTest {
         workflow.setTasks(Collections.singletonList(task));
 
         when(executionDAO.getWorkflow(anyString(), anyBoolean())).thenReturn(workflow);
-        executionDAOFacade.removeWorkflow("workflowId", false, false, false);
+        executionDAOFacade.removeWorkflow("workflowId", false, false);
         verify(indexDAO, never()).updateWorkflow(anyString(), any(), any());
         verify(indexDAO, never()).updateTask(anyString(), anyString(), any(), any());
         verify(indexDAO, times(1)).asyncRemoveWorkflow(anyString());
@@ -165,7 +165,7 @@ public class ExecutionDAOFacadeTest {
         workflow.setTasks(Collections.singletonList(task));
 
         when(executionDAO.getWorkflow(anyString(), anyBoolean())).thenReturn(workflow);
-        executionDAOFacade.removeWorkflow("workflowId", false, true, false);
+        executionDAOFacade.removeWorkflow("workflowId", false, true);
         verify(indexDAO, never()).updateWorkflow(anyString(), any(), any());
         verify(indexDAO, never()).updateTask(anyString(), anyString(), any(), any());
         verify(indexDAO, times(1)).asyncRemoveWorkflow(anyString());
@@ -178,7 +178,7 @@ public class ExecutionDAOFacadeTest {
         WorkflowModel workflow = objectMapper.readValue(stream, WorkflowModel.class);
 
         when(executionDAO.getWorkflow(anyString(), anyBoolean())).thenReturn(workflow);
-        executionDAOFacade.removeWorkflow("workflowId", true, false, false);
+        executionDAOFacade.removeWorkflow("workflowId", true, false);
         verify(indexDAO, times(1)).updateWorkflow(anyString(), any(), any());
         verify(indexDAO, never()).updateTask(anyString(), anyString(), any(), any());
         verify(indexDAO, never()).removeWorkflow(anyString());
@@ -191,7 +191,7 @@ public class ExecutionDAOFacadeTest {
         WorkflowModel workflow = objectMapper.readValue(stream, WorkflowModel.class);
 
         when(executionDAO.getWorkflow(anyString(), anyBoolean())).thenReturn(workflow);
-        executionDAOFacade.removeWorkflow("workflowId", true, true, true);
+        executionDAOFacade.removeWorkflow("workflowId", true, true);
         verify(indexDAO, times(1)).updateWorkflow(anyString(), any(), any());
         verify(indexDAO, times(15)).updateTask(anyString(), anyString(), any(), any());
         verify(indexDAO, never()).removeWorkflow(anyString());

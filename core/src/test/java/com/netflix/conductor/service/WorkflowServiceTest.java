@@ -239,22 +239,20 @@ public class WorkflowServiceTest {
 
     @Test
     public void testDeleteWorkflowWithoutTask() {
-        workflowService.deleteWorkflow("w123", true, false, false);
-        verify(executionService, times(1))
-                .removeWorkflow(anyString(), anyBoolean(), eq(false), anyBoolean());
+        workflowService.deleteWorkflow("w123", true, false);
+        verify(executionService, times(1)).removeWorkflow(anyString(), anyBoolean(), eq(false));
     }
 
     @Test
     public void testDeleteWorkflowWithTask() {
-        workflowService.deleteWorkflow("w123", true, true, true);
-        verify(executionService, times(1))
-                .removeWorkflow(anyString(), anyBoolean(), eq(true), anyBoolean());
+        workflowService.deleteWorkflow("w123", true, true);
+        verify(executionService, times(1)).removeWorkflow(anyString(), anyBoolean(), eq(true));
     }
 
     @Test(expected = ConstraintViolationException.class)
     public void testInvalidDeleteWorkflowWithoutTask() {
         try {
-            workflowService.deleteWorkflow(null, true, false, false);
+            workflowService.deleteWorkflow(null, true, false);
         } catch (ConstraintViolationException ex) {
             assertEquals(1, ex.getConstraintViolations().size());
             Set<String> messages = getConstraintViolationMessages(ex.getConstraintViolations());
@@ -266,7 +264,7 @@ public class WorkflowServiceTest {
     @Test(expected = ConstraintViolationException.class)
     public void testInvalidDeleteWorkflowWithTask() {
         try {
-            workflowService.deleteWorkflow(null, true, true, true);
+            workflowService.deleteWorkflow(null, true, true);
         } catch (ConstraintViolationException ex) {
             assertEquals(1, ex.getConstraintViolations().size());
             Set<String> messages = getConstraintViolationMessages(ex.getConstraintViolations());

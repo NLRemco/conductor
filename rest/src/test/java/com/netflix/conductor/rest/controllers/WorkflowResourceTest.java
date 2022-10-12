@@ -131,16 +131,16 @@ public class WorkflowResourceTest {
 
     @Test
     public void testDeleteWithoutTask() {
-        workflowResource.delete("w123", true, false, false);
+        workflowResource.delete("w123", true, false);
         verify(mockWorkflowService, times(1))
-                .deleteWorkflow(anyString(), anyBoolean(), anyBoolean(), anyBoolean());
+                .deleteWorkflow(anyString(), anyBoolean(), anyBoolean());
     }
 
     @Test
     public void testDeleteWithTask() {
-        workflowResource.delete("w123", true, true, true);
+        workflowResource.delete("w123", true, true);
         verify(mockWorkflowService, times(1))
-                .deleteWorkflow(anyString(), anyBoolean(), anyBoolean(), anyBoolean());
+                .deleteWorkflow(anyString(), anyBoolean(), anyBoolean());
     }
 
     @Test

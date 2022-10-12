@@ -391,7 +391,7 @@ public class WorkflowExecutor {
             // want to log both errors to help diagnosis.
             // For now the tasks are not removed or archived.
             try {
-                executionDAOFacade.removeWorkflow(workflowId, false, false, false);
+                executionDAOFacade.removeWorkflow(workflowId, false, false);
             } catch (Exception rwe) {
                 LOGGER.error("Could not remove the workflowId: " + workflowId, rwe);
             }
