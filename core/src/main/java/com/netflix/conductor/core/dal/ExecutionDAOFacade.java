@@ -334,7 +334,9 @@ public class ExecutionDAOFacade {
      *
      * @param workflowId the id of the workflow to be removed
      * @param archiveWorkflow if true, the workflow will be archived in the {@link IndexDAO} after
-     *     removal from {@link ExecutionDAO}
+     *     removal from {@link ExecutionDAO}. Next to this if removeTasks is true, the tasks
+     *     associated with the workflow will also be archived in the {@link IndexDAO} after removal
+     *     from {@link ExecutionDAO}.
      * @param removeTasks if true, the tasks associated with the workflow will be removed
      */
     public void removeWorkflow(String workflowId, boolean archiveWorkflow, boolean removeTasks) {
